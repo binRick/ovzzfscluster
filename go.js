@@ -26,7 +26,8 @@ var fC = function() {
         var Host = _.pick(vm.host, hostFilter);
         console.log(pj.render(VM));
     });*/
-//    var countSoup = new vz.supervisors.Count(Cluster, vz.containers.Node, 2, false);
+    var countSoup = new vz.supervisors.Count(jCluster, vz.containers.Node, 1, false);
+    var countSou1p = new vz.supervisors.Count(dCluster, vz.containers.Node, 1, false);
 
 };
 
