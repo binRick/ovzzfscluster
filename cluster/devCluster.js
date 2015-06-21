@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 var MAXCOUNT = 20
 var program = require('commander');
 program
@@ -16,7 +15,7 @@ var vz = require('../openvz-cluster'),
     c = require('chalk'),
     pj = require('prettyjson'),
     dns = require('dns');
-
+var C = console.log;
 program.template = program.template || 'centos-7-x86_64';
 var vmFilter = ['id', 'ip', 'hostname', 'status', 'vmStatus', 'ipMonitor', 'ostemplate']; //,'exec_queue'];
 var hostFilter = ['ip'];
@@ -75,7 +74,7 @@ if (program.host && program.template && program.count && program.supervisorType)
                 if (program.webserverPort) {
                     app.listen(program.webserverPort, function(e) {
                         console.log(c.green.bgBlack('Express listening on port', program.webserverPort));
-
+createSocketServer();
                     });
                 }
 
@@ -84,3 +83,22 @@ if (program.host && program.template && program.count && program.supervisorType)
         });
     });
 }
+
+
+var createSocketServer = function() {
+    var server = require('http').createServer();
+    var io = require('socket.io')(server);
+    io.on('connection', function(socket) {
+            C(c.red.bgBlack('Connected!'));
+        socket.on('disconnect', function() {
+            C(c.red.bgWhite('disconnection'));
+        });
+        socket.on('Snapshot', function(req, cb) {
+            C(c.red.bgBlack('Snapshot Request!', req));
+            cb(null, {});
+        });
+    });
+    server.listen(process.env.PORT || 29232, process.env.HOST || '0.0.0.0', function() {
+        C(c.blue.bgWhite('Listening!'));
+    });
+};
