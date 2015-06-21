@@ -181,7 +181,7 @@ Host.prototype._constructContainer = function(data) {
 		container = new clazz(data, this);
 		this.containers.push(container);
         var IP = ' [' + c.green.bgBlack(this.ip) + '] ';
-		log.debug(IP + 'new container added id: ' + data.id + ' type: ' + class_name
+		log.debug(IP + 'new container added CTID: ' + data.id + ' type: ' + class_name
 				+ ' class: ' + clazz.type);
 		this.emit('addContainer', container);
 	} else {

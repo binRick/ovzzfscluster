@@ -25,6 +25,9 @@ var vz = require('./openvz_cluster'),
 var C = console.log;
 program.template = program.template || 'centos-7-x86_64';
 var vmFilter = ['id', 'ip', 'hostname', 'status', 'vmStatus', 'ipMonitor', 'ostemplate']; //,'exec_queue'];
+                var aF = function(c) {
+                    return _.pick(c, vmFilter)
+                };
 var hostFilter = ['ip'];
 vz.containerTypes.register(vz.containers[program.template]);
 
@@ -65,23 +68,28 @@ if (program.host && program.template && program.count && program.supervisorType)
                     delete Supervisor;
                 });
 
-                app.get('/Host', function(req, res) {
+                Supervisor.getHost = function() {
                     var cHosts = Supervisor.getHostsSortByCtnCount();
                     var Host = _.pick(cHosts[0], hostFilter);
-                    res.send(Host);
+                    return Host;
+                };
+                app.get('/Host', function(req, res) {
+                    res.send(Supervisor.getHost());
                 });
-
-                app.get('/VMs', function(req, res) {
+                Supervisor.getVMs = function() {
                     var cHosts = Supervisor.getHostsSortByCtnCount();
                     var VMs = cHosts[0].containers.map(function(c) {
                         return _.pick(c, vmFilter);
                     });
-                    res.send(VMs);
+                    return VMs;
+                };
+                app.get('/VMs', function(req, res) {
+                    res.send(Supervisor.getVMs());
                 });
                 if (program.webserverPort) {
                     app.listen(program.webserverPort, function(e) {
                         console.log(c.green.bgBlack('Express listening on port', program.webserverPort));
-                        createSocketServer();
+                        createSocketServer(Supervisor);
                     });
                 }
 
@@ -93,15 +101,25 @@ if (program.host && program.template && program.count && program.supervisorType)
 var clientSocket = require('./clientSocket');
 
 
-var createSocketServer = function() {
+var createSocketServer = function(Supervisor) {
     var server = require('http').createServer();
     var io = require('socket.io')(server);
     io.on('connection', function(socket) {
         C(c.red.bgBlack('Connected!'));
         socket.on('ready', function(req) {
-            clientSocket.Setup(socket, req, function(e, ok) {
+            clientSocket.Setup(socket, Supervisor, req, function(e, ok) {
                 if (e) throw e;
+                var vms = Supervisor.getHostsSortByCtnCount()[0].containers.map(aF);
+                console.log(c.green.bgBlack('VMs loaded', vms.length));
                 console.log(c.green.bgBlack('Finished clientSocket Setup'), ok);
+
+
+Supervisor.getHostsSortByCtnCount()[0].on('addContainer', function(container) {
+var C = aF(container)
+    console.log(c.red.bgWhite('added new container!!!!'), C);
+socket.emit('newContainer', C);
+});
+
             });
         });
         socket.on('disconnect', function() {
