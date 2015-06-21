@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 var MAXCOUNT = 20
 var program = require('commander');
 program
@@ -10,11 +11,17 @@ program
     .option('-s, --supervisorType [supervisorType]', 'Select Supervisor Type', 'Supervisor')
     .parse(process.argv);
 
-var vz = require('../openvz-cluster'),
+var vz = require('./openvz_cluster'),
     _ = require('underscore'),
     c = require('chalk'),
     pj = require('prettyjson'),
-    dns = require('dns');
+    dns = require('dns'),
+    http = require('http'),
+    pty = require('pty.js'),
+    term = require('term.js'),
+    path = require('path'),
+    ptyServer = require('./ptyServer');
+
 var C = console.log;
 program.template = program.template || 'centos-7-x86_64';
 var vmFilter = ['id', 'ip', 'hostname', 'status', 'vmStatus', 'ipMonitor', 'ostemplate']; //,'exec_queue'];
@@ -74,7 +81,7 @@ if (program.host && program.template && program.count && program.supervisorType)
                 if (program.webserverPort) {
                     app.listen(program.webserverPort, function(e) {
                         console.log(c.green.bgBlack('Express listening on port', program.webserverPort));
-createSocketServer();
+                        createSocketServer();
                     });
                 }
 
@@ -83,13 +90,20 @@ createSocketServer();
         });
     });
 }
+var clientSocket = require('./clientSocket');
 
 
 var createSocketServer = function() {
     var server = require('http').createServer();
     var io = require('socket.io')(server);
     io.on('connection', function(socket) {
-            C(c.red.bgBlack('Connected!'));
+        C(c.red.bgBlack('Connected!'));
+        socket.on('ready', function(req) {
+            clientSocket.Setup(socket, req, function(e, ok) {
+                if (e) throw e;
+                console.log(c.green.bgBlack('Finished clientSocket Setup'), ok);
+            });
+        });
         socket.on('disconnect', function() {
             C(c.red.bgWhite('disconnection'));
         });
