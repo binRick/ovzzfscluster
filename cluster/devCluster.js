@@ -60,7 +60,7 @@ if (program.host && program.template && program.count && program.supervisorType)
             });
         });
     }, function(e, hosts) {
-        console.log(c.green.bgBlack('hosts'), hosts);
+        console.log(c.green.bgBlack('hosts'), hosts.length);
         var Supervisor = new vz.supervisors[program.supervisorType](Cluster, vz.containers[program.template], program.count, false);
         app.get('/Count/:newcount', function(req, res) {
             req.params.newcount = parseInt(req.params.newcount);
