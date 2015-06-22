@@ -2,7 +2,7 @@ var async = require('async'), encoder = require('./encoder').encoder, path = req
 		.from(__filename), exec = require('child_process').exec, EventEmitter = require('events').EventEmitter, IpMonitor = require('./tools/ipMonitor').IpMonitor;
 var util = require("util");
 
-const DEFAULT_TEMPLATE = 'debian-6.0-standard_6.0-4_i386';
+const DEFAULT_TEMPLATE = 'centos-7-x86_64';
 
 function Container(info, host) {
 	this.host = host;
