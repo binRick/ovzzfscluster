@@ -33,6 +33,8 @@ var hostFilter = ['ip'];
 vz.containerTypes.register(vz.containers[program.template]);
 
 if (program.webserverPort) {
+    var app = require('./app');
+/*
     var express = require('express'),
         bodyParser = require('body-parser');
 
@@ -42,6 +44,7 @@ if (program.webserverPort) {
     app.get('/', function(req, res) {
         res.send(JSON.stringify(program));
     });
+*/
 }
 if (program.host && program.template && program.count && program.supervisorType) {
     if (program.host.split(',').length == 0)
