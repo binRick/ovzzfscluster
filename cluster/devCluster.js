@@ -69,14 +69,21 @@ if (program.host && program.template && program.count && program.supervisorType)
                 });
 
                 Supervisor.getHost = function() {
-                    var cHosts = Supervisor.getHostsSortByCtnCount();
-                    var Host = _.pick(cHosts[0], hostFilter);
-                    return Host;
+			return _.pick(Supervisor.getHostsSortByCtnCount()[0], hostFilter);
                 };
                 app.get('/Host', function(req, res) {
                     res.send(Supervisor.getHost());
                 });
-                Supervisor.getVMs = function() {
+                Supervisor.getHosts = function() {
+			return _.pick(_.toArray(Supervisor.getHostsSortByCtnCount()), hostFilter);
+                };
+                app.get('/Hosts', function(req, res) {
+                    res.send(Supervisor.getHosts());
+                });
+                app.get('/VMs/:host', function(req, res) {
+                    res.send(Supervisor.getVMs(req.params.host));
+                });
+                Supervisor.getVMs = function(host) {
                     var cHosts = Supervisor.getHostsSortByCtnCount();
                     var VMs = cHosts[0].containers.map(function(c) {
                         return _.pick(c, vmFilter);
