@@ -14,6 +14,7 @@ program
 var vz = require('./openvz_cluster'),
     _ = require('underscore'),
     c = require('chalk'),
+    async = require('async'),
     pj = require('prettyjson'),
     dns = require('dns'),
     http = require('http'),
@@ -47,63 +48,60 @@ if (program.host && program.template && program.count && program.supervisorType)
         var hosts = [host];
     else
         var hosts = program.host.split(',');
-    var Hosts = [];
-    ips = [];
-    host = hosts[0];
-    dns.lookup(host, function onLookup(e, ip, family) {
-        dns.lookup(hosts[1], function onLookup(e, ip2, family) {
-            if (e) throw e;
-            console.log(c.green.bgBlack('looking up', host, c.red.bgBlack(ip)));
-            if (ip.split('.').length != 4) throw "ip=" + ip;
+    var Cluster = new vz.Cluster();
+    async.mapSeries(hosts, function(h, cb) {
+        dns.lookup(h, function(e, ip) {
             var Host = new vz.Host(ip, []);
-            var Host2 = new vz.Host(ip2, []);
-            var Cluster = new vz.Cluster(Host2,Host);
-            console.log(c.green.bgBlack('Cluster Init', ip));
-            var fC = function() {
-                var Supervisor = new vz.supervisors[program.supervisorType](Cluster, vz.containers[program.template], program.count, false);
-                app.get('/Count/:newcount', function(req, res) {
-                    req.params.newcount = parseInt(req.params.newcount);
-                    if (req.params.newcount < 0 && req.params.newcount > MAXCOUNT)
-                        return res.end(500);
-                    console.log(c.red.bgBlack('Removing current count and replacing with', req.params.newcount));
-                    delete Supervisor;
-                });
-
-                Supervisor.getHost = function() {
-                    return _.pick(Supervisor.getHostsSortByCtnCount()[0], hostFilter);
-                };
-                app.get('/Host', function(req, res) {
-                    res.send(Supervisor.getHost());
-                });
-                Supervisor.getHosts = function() {
-                    return _.pick(_.toArray(Supervisor.getHostsSortByCtnCount()), hostFilter);
-                };
-                app.get('/Hosts', function(req, res) {
-                    res.send(Supervisor.getHosts());
-                });
-                app.get('/VMs/:host', function(req, res) {
-                    res.send(Supervisor.getVMs(req.params.host));
-                });
-                Supervisor.getVMs = function(host) {
-                    var cHosts = Supervisor.getHostsSortByCtnCount();
-                    var VMs = cHosts[0].containers.map(function(c) {
-                        return _.pick(c, vmFilter);
-                    });
-                    return VMs;
-                };
-                app.get('/VMs', function(req, res) {
-                    res.send(Supervisor.getVMs());
-                });
-                if (program.webserverPort) {
-                    app.listen(program.webserverPort, function(e) {
-                        console.log(c.green.bgBlack('Express listening on port', program.webserverPort));
-                        createSocketServer(Supervisor);
-                    });
-                }
-
-            };
-            setTimeout(fC, 3000);
+            Cluster.register(Host);
+            cb(e, {
+                host: h,
+                ip: ip,
+                Host: Host
+            });
         });
+    }, function(e, hosts) {
+        console.log(c.green.bgBlack('hosts'), hosts);
+        var Supervisor = new vz.supervisors[program.supervisorType](Cluster, vz.containers[program.template], program.count, false);
+        app.get('/Count/:newcount', function(req, res) {
+            req.params.newcount = parseInt(req.params.newcount);
+            if (req.params.newcount < 0 && req.params.newcount > MAXCOUNT)
+                return res.end(500);
+            console.log(c.red.bgBlack('Removing current count and replacing with', req.params.newcount));
+            delete Supervisor;
+        });
+
+        Supervisor.getHost = function() {
+            return _.pick(Supervisor.getHostsSortByCtnCount()[0], hostFilter);
+        };
+        app.get('/Host', function(req, res) {
+            res.send(Supervisor.getHost());
+        });
+        Supervisor.getHosts = function() {
+            return _.pick(_.toArray(Supervisor.getHostsSortByCtnCount()), hostFilter);
+        };
+        app.get('/Hosts', function(req, res) {
+            res.send(Supervisor.getHosts());
+        });
+        app.get('/VMs/:host', function(req, res) {
+            res.send(Supervisor.getVMs(req.params.host));
+        });
+        Supervisor.getVMs = function(host) {
+            var cHosts = Supervisor.getHostsSortByCtnCount();
+            var VMs = cHosts[0].containers.map(function(c) {
+                return _.pick(c, vmFilter);
+            });
+            return VMs;
+        };
+        app.get('/VMs', function(req, res) {
+            res.send(Supervisor.getVMs());
+        });
+        if (program.webserverPort) {
+            app.listen(program.webserverPort, function(e) {
+                console.log(c.green.bgBlack('Express listening on port', program.webserverPort));
+                createSocketServer(Supervisor);
+            });
+        }
+
     });
 }
 var clientSocket = require('./clientSocket');
@@ -124,7 +122,7 @@ var createSocketServer = function(Supervisor) {
 
                 Supervisor.getHostsSortByCtnCount()[0].on('addContainer', function(container) {
                     var C = aF(container)
-                    console.log(c.red.bgWhite('added new container!!!!'), C);
+                    console.log(c.red.bgWhite('added new container!!!!'), _.keys(C));
                     socket.emit('newContainer', C);
                 });
 
