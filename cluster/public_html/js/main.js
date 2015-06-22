@@ -92,6 +92,19 @@ socket.on('connect', function() {
     }, ];
 
     var pstyle = 'border: 1px solid #dfdfdf; padding: 5px;';
+    var pstyle2 = 'border: 1px solid #fff; padding: 5px;';
+    $('#main').w2layout({
+name:'main',
+panels:[
+
+{            type: 'main',
+//            size: 50,
+//            resizable: true,
+            style: pstyle2,
+            content:'<div id="layout" style="width: 100%; height: 400px;"></div>',
+}
+],
+});
     $('#layout').w2layout({
         name: 'layout',
         panels: [{
