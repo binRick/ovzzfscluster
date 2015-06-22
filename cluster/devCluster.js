@@ -25,9 +25,9 @@ var vz = require('./openvz_cluster'),
 var C = console.log;
 program.template = program.template || 'centos-7-x86_64';
 var vmFilter = ['id', 'ip', 'hostname', 'status', 'vmStatus', 'ipMonitor', 'ostemplate']; //,'exec_queue'];
-                var aF = function(c) {
-                    return _.pick(c, vmFilter)
-                };
+var aF = function(c) {
+    return _.pick(c, vmFilter)
+};
 var hostFilter = ['ip'];
 vz.containerTypes.register(vz.containers[program.template]);
 
@@ -56,7 +56,8 @@ if (program.host && program.template && program.count && program.supervisorType)
             console.log(c.green.bgBlack('looking up', host, c.red.bgBlack(ip)));
             if (ip.split('.').length != 4) throw "ip=" + ip;
             var Host = new vz.Host(ip, []);
-            var Cluster = new vz.Cluster(Host);
+            var Host2 = new vz.Host(ip2, []);
+            var Cluster = new vz.Cluster(Host2,Host);
             console.log(c.green.bgBlack('Cluster Init', ip));
             var fC = function() {
                 var Supervisor = new vz.supervisors[program.supervisorType](Cluster, vz.containers[program.template], program.count, false);
@@ -69,13 +70,13 @@ if (program.host && program.template && program.count && program.supervisorType)
                 });
 
                 Supervisor.getHost = function() {
-			return _.pick(Supervisor.getHostsSortByCtnCount()[0], hostFilter);
+                    return _.pick(Supervisor.getHostsSortByCtnCount()[0], hostFilter);
                 };
                 app.get('/Host', function(req, res) {
                     res.send(Supervisor.getHost());
                 });
                 Supervisor.getHosts = function() {
-			return _.pick(_.toArray(Supervisor.getHostsSortByCtnCount()), hostFilter);
+                    return _.pick(_.toArray(Supervisor.getHostsSortByCtnCount()), hostFilter);
                 };
                 app.get('/Hosts', function(req, res) {
                     res.send(Supervisor.getHosts());
@@ -121,11 +122,11 @@ var createSocketServer = function(Supervisor) {
                 console.log(c.green.bgBlack('Finished clientSocket Setup'), ok);
 
 
-Supervisor.getHostsSortByCtnCount()[0].on('addContainer', function(container) {
-var C = aF(container)
-    console.log(c.red.bgWhite('added new container!!!!'), C);
-socket.emit('newContainer', C);
-});
+                Supervisor.getHostsSortByCtnCount()[0].on('addContainer', function(container) {
+                    var C = aF(container)
+                    console.log(c.red.bgWhite('added new container!!!!'), C);
+                    socket.emit('newContainer', C);
+                });
 
             });
         });
