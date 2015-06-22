@@ -100,7 +100,6 @@ socket.on('connect', function() {
             {type: 'top',style: pstyle2,
 size: 45,
                 content: 'topper',},
-        ],
             {type: 'main',style: pstyle2,
                 content: '<div id="layout" style="width: 100%; height: 400px;"></div>',},
         ],
