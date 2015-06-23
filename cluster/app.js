@@ -1,8 +1,11 @@
  var express = require('express'),
-     bodyParser = require('body-parser');
+     bodyParser = require('body-parser'),
+     term = require('term.js');
+
 
  var app = new express();
  app.use(bodyParser());
+        app.use(term.middleware());
  app.use(express.static(__dirname + '/public_html'));
  app.get('/', function(req, res) {
      res.send(JSON.stringify(program));

@@ -97,10 +97,22 @@ socket.on('connect', function() {
         name: 'main',
         panels: [
 
-            {type: 'top',style: pstyle2,size: 45,content: 'topper',},
-            {type: 'bottom',style: pstyle2,size: 45,content: 'bottom',},
-            {type: 'main',style: pstyle2, size: '80%',
-                content: '<div id="layout" style="width: 100%; height: 600px;"></div>',},
+            {
+                type: 'top',
+                style: pstyle2,
+                size: 45,
+                content: 'topper',
+            }, {
+                type: 'bottom',
+                style: pstyle2,
+                size: 45,
+                content: '<div id="termDiv1"></div>',
+            }, {
+                type: 'main',
+                style: pstyle2,
+                size: '90%',
+                content: '<div id="layout" style="width: 100%; height: 800px;"></div>',
+            },
         ],
     });
     $('#layout').w2layout({
@@ -117,6 +129,12 @@ socket.on('connect', function() {
             resizable: true,
             style: pstyle,
             content: '<div id="sidebar" style="height: 300px; width: 200px;"></div>'
+        }, {
+            type: 'bottom',
+            size: 300,
+            resizable: true,
+            style: pstyle,
+                content: '<div id="termDiv"></div>',
         }, {
             type: 'right',
             size: 200,
@@ -169,6 +187,33 @@ socket.on('connect', function() {
             console.log('Target: ' + event.target, event);
         }
     });
+    var term = new Terminal({
+        cols: 160,
+        rows: 44,
+        colors: Terminal.xtermColors
+    });
+
+    term.on('data', function(data) {
+        socket.emit('data', data);
+    });
+
+    term.on('title', function(title) {
+        document.title = title;
+    });
+
+    window.term = term;
+    term.open(document.getElementById('termDiv'));
+//    term.open(document.body);
+
+    socket.on('data', function(data) {
+        term.write(data);
+    });
+
+    socket.on('disconnect', function() {
+        term.destroy();
+    });
+
+
     socket.on('newContainer', function(Container) {
 
         console.log('container', Container);
