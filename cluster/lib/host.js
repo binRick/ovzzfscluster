@@ -10,6 +10,7 @@ const BIN_VZEXEC = 'python /root/vzTools/vzexec.py';
 
 function Host(ip, options) {
 	this.ip = ip;
+    this.hostname=options.hostname;
 	this.init = false;
 	this.__waitingInit = [];
 	this.user = 'root';
