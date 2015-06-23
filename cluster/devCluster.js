@@ -33,7 +33,8 @@ var aF = function(c) {
 vz.containerTypes.register(vz.containers[program.template]);
 
 if (program.webserverPort)
-    var app = require('./app');
+    var app = require('./app'),
+    SocketIO = require('./socket');
 
 if (program.host && program.template && program.count && program.supervisorType) {
     if (program.host.split(',').length == 0)
@@ -54,9 +55,6 @@ if (program.host && program.template && program.count && program.supervisorType)
     }, function(e, hosts) {
         console.log(c.green.bgBlack('hosts'), hosts.length);
         var Supervisor = new vz.supervisors[program.supervisorType](Cluster, vz.containers[program.template], program.count, false);
-        Supervisor.getHost = function() {
-            return _.pick(Supervisor.getHostsSortByCtnCount()[0], hostFilter);
-        };
         Supervisor.getHosts = function() {
             return _.toArray(Supervisor.getHostsSortByCtnCount()).map(function(s){
                 return _.pick(s,hostFilter);  
@@ -75,13 +73,18 @@ if (program.host && program.template && program.count && program.supervisorType)
         if (program.webserverPort) {
             app.listen(program.webserverPort, function(e) {
                 console.log(c.green.bgBlack('Express listening on port', program.webserverPort));
-                createSocketServer(Supervisor);
+                SocketIO(Supervisor, function(e, ok){
+                    if(e)throw e;
+                console.log(c.green.bgBlack('Socket io listening'));
+                });
+//                createSocketServer(Supervisor);
             });
         }
         });
 
     });
 }
+/*
 var clientSocket = require('./clientSocket');
 
 
@@ -93,8 +96,8 @@ var createSocketServer = function(Supervisor) {
         socket.on('ready', function(req) {
             clientSocket.Setup(socket, Supervisor, req, function(e, ok) {
                 if (e) throw e;
-                var vms = Supervisor.getHostsSortByCtnCount()[0].containers.map(aF);
-                console.log(c.green.bgBlack('VMs loaded', vms.length));
+//                var vms = Supervisor.getHostsSortByCtnCount()[0].containers.map(aF);
+//                console.log(c.green.bgBlack('VMs loaded', vms.length));
                 console.log(c.green.bgBlack('Finished clientSocket Setup'), ok);
 
 
@@ -118,3 +121,4 @@ var createSocketServer = function(Supervisor) {
         C(c.blue.bgWhite('Listening!'));
     });
 };
+*/

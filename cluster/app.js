@@ -17,9 +17,6 @@
          console.log(c.red.bgBlack('Removing current count and replacing with', req.params.newcount));
          delete Supervisor;
      });
-     app.get('/Host', function(req, res) {
-         res.send(Supervisor.getHost());
-     });
      app.get('/Hosts', function(req, res) {
          res.send(Supervisor.getHosts());
      });
