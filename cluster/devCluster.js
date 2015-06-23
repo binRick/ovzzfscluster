@@ -68,8 +68,6 @@ if (program.host && program.template && program.count && program.supervisorType)
             return VMs;
         };
         app.loadSupervisor(Supervisor, function(e,d){
-
-
         if (program.webserverPort) {
             app.listen(program.webserverPort, function(e) {
                 console.log(c.green.bgBlack('Express listening on port', program.webserverPort));

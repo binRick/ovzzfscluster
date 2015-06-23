@@ -97,11 +97,10 @@ socket.on('connect', function() {
         name: 'main',
         panels: [
 
-            {type: 'top',style: pstyle2,
-size: 45,
-                content: 'topper',},
-            {type: 'main',style: pstyle2,
-                content: '<div id="layout" style="width: 100%; height: 400px;"></div>',},
+            {type: 'top',style: pstyle2,size: 45,content: 'topper',},
+            {type: 'bottom',style: pstyle2,size: 45,content: 'bottom',},
+            {type: 'main',style: pstyle2, size: '80%',
+                content: '<div id="layout" style="width: 100%; height: 600px;"></div>',},
         ],
     });
     $('#layout').w2layout({
@@ -178,7 +177,7 @@ size: 45,
         console.log('toolbarItem received', item.type, item.data);
         w2ui[item.type].add(item.data);
     });
-    var doubleGrid = '<div style="position: relative; height: 300px;">' +
+    var doubleGrid = '<div style="position: relative; height: 500px;">' +
         '<div id="grid1" style="position: absolute; left: 0px; width: 49.9%; height: 300px;"></div>' +
         '<div id="grid2" style="position: absolute; right: 0px; width: 49.9%; height: 300px;"></div>' +
         '</div>';
