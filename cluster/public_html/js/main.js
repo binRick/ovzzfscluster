@@ -187,6 +187,7 @@ socket.on('connect', function() {
             console.log('Target: ' + event.target, event);
         }
     });
+    /*
     var term = new Terminal({
         cols: 160,
         rows: 44,
@@ -212,7 +213,7 @@ socket.on('connect', function() {
     socket.on('disconnect', function() {
         term.destroy();
     });
-
+*/
 
     socket.on('newContainer', function(Container) {
 
